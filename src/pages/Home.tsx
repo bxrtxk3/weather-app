@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 const Home: React.FC = () => {
+  // Constants
   const API_KEY = import.meta.env.VITE_APP_API_KEY;
   const GEO_API_BASE_URL = "http://api.openweathermap.org/geo/1.0/direct";
-  const WEATHER_API_BASE_URL =
-    "https://api.openweathermap.org/data/2.5/weather";
+  const DEFAULT_LOCATION = 'London';
+  const WEATHER_API_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather';
 
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<null | string>(null);
   const [searchString, setSearchString] = useState("London");
-  const [location, setLocation] = useState("London");
-  const [lat, setLat] = useState(51.507359);
-  const [lon, setLon] = useState(-0.136439);
+  const [location, setLocation] = useState('');
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
 
@@ -18,46 +20,91 @@ const Home: React.FC = () => {
       `${GEO_API_BASE_URL}?q=${searchString}&appid=${API_KEY}`
     );
     const data = await response.json();
-    setLat(data[0].lat);
-    setLon(data[0].lon);
     setLocation(`${data[0].name}, ${data[0].country}`);
   }, [searchString, API_KEY]);
 
-  const fetchWeatherData = useCallback(async () => {
-    const response = await fetch(
-      `${WEATHER_API_BASE_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-    );
-    const data = await response.json();
-    if (response.status !== 200) {
-      throw new Error("Error fetching weather data from the API");
+
+  // Fetch weather data for a given URL
+  const fetchWeatherData = async (url: string) => {
+    setLoading(true);
+    const response = await fetch(url);
+
+    // Check if the request was successful
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    setLocation(data.name);
     setTemperature(data.main.temp);
     setHumidity(data.main.humidity);
-  }, [lat, lon, API_KEY]);
+    setLoading(false);
+  };
 
+  // Callback for successful geolocation
+  const successCallback = async (position: GeolocationPosition) => {
+    const url = `${WEATHER_API_BASE_URL}?lat=${position.coords.latitude}&lon=${position.coords.longitude}&appid=${API_KEY}&units=metric`;
+    try {
+      await fetchWeatherData(url);
+    } catch (error) {
+      // Handle network errors
+      if (error instanceof Error) {
+        setError(`Network error: ${error.message}`);
+      }
+    }
+  };
+
+  // Callback for failed geolocation
+  const errorCallback = async () => {
+    const url = `${WEATHER_API_BASE_URL}?q=${DEFAULT_LOCATION}&appid=${API_KEY}&units=metric`;
+    try {
+      await fetchWeatherData(url);
+    } catch (error) {
+      // Handle network errors
+      if (error instanceof Error) {
+        setError(`Network error: ${error.message}`);
+      }
+    }
+  };
+
+  // Fetch weather data on component mount
   useEffect(() => {
-    fetchGeolocation();
-    fetchWeatherData();
-  }, [location]);
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+  }, []);
+
 
   return (
     <div>
-      <h1>Weather App</h1>
       <input
         type="text"
         value={searchString}
         onChange={(e) => setSearchString(e.target.value)}
       />
       <button
-        onClick={() => {
-          fetchGeolocation();
-          fetchWeatherData();
+        onClick={async () => {
+          const url = `${WEATHER_API_BASE_URL}?q=${searchString}&appid=${API_KEY}&units=metric`;
+          try {
+            await fetchWeatherData(url);
+          } catch (error) {
+            if (error instanceof Error) {
+              setError(error.message);
+            }
+          }
         }}
       >
         Fetch Weather
       </button>
-      {temperature && <p>Temperature: {temperature}°C</p>}
-      {humidity && <p>Humidity: {humidity}%</p>}
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p>Error: {error}</p>
+      ) : (
+        <>
+          <p>Location: {location}</p>
+          <p>Temperature: {temperature}°C</p>
+          <p>Humidity: {humidity}%</p>
+        </>
+      )}
     </div>
   );
 };

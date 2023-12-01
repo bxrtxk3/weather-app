@@ -75,13 +75,9 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      <input
-        type="text"
-        value={searchString}
-        onChange={(e) => setSearchString(e.target.value)}
-      />
-      <button
-        onClick={async () => {
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
           const url = `${WEATHER_API_BASE_URL}?q=${searchString}&appid=${API_KEY}&units=metric`;
           try {
             await fetchWeatherData(url);
@@ -92,18 +88,23 @@ const Home: React.FC = () => {
           }
         }}
       >
-        Fetch Weather
-      </button>
+        <input
+          type="text"
+          value={searchString}
+          onChange={(e) => setSearchString(e.target.value)}
+        />
+        <button type="submit">Fetch Weather</button>
+      </form>
       {loading ? (
         <p>Loading...</p>
       ) : error ? (
         <p>Error: {error}</p>
       ) : (
-        <>
+        <div>
           <p>Location: {location}</p>
           <p>Temperature: {temperature}°C</p>
           <p>Humidity: {humidity}%</p>
-        </>
+        </div>
       )}
     </div>
   );

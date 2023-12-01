@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 
 const Home: React.FC = () => {
   // Constants
   const API_KEY = import.meta.env.VITE_APP_API_KEY;
-  const GEO_API_BASE_URL = "http://api.openweathermap.org/geo/1.0/direct";
   const DEFAULT_LOCATION = 'London';
   const WEATHER_API_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather';
-
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | string>(null);
@@ -14,15 +12,6 @@ const Home: React.FC = () => {
   const [location, setLocation] = useState('');
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
-
-  const fetchGeolocation = useCallback(async () => {
-    const response = await fetch(
-      `${GEO_API_BASE_URL}?q=${searchString}&appid=${API_KEY}`
-    );
-    const data = await response.json();
-    setLocation(`${data[0].name}, ${data[0].country}`);
-  }, [searchString, API_KEY]);
-
 
   // Fetch weather data for a given URL
   const fetchWeatherData = async (url: string) => {
@@ -81,7 +70,6 @@ const Home: React.FC = () => {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
   }, []);
-
 
   return (
     <div>

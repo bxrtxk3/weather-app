@@ -27,18 +27,28 @@ const Home: React.FC = () => {
   // Fetch weather data for a given URL
   const fetchWeatherData = async (url: string) => {
     setLoading(true);
-    const response = await fetch(url);
-
-    // Check if the request was successful
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    setError(null); // Reset the error state
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Check if the status is 404 and display a specific message
+        if (response.status === 404) {
+          throw new Error('Location not found');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+      const data = await response.json();
+      setLocation(data.name);
+      setTemperature(data.main.temp);
+      setHumidity(data.main.humidity);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      }
+    } finally {
+      setLoading(false);
     }
-
-    const data = await response.json();
-    setLocation(data.name);
-    setTemperature(data.main.temp);
-    setHumidity(data.main.humidity);
-    setLoading(false);
   };
 
   // Callback for successful geolocation

@@ -12,6 +12,13 @@ const Home: React.FC = () => {
   const [location, setLocation] = useState('');
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
+  const [feelsLike, setFeelsLike] = useState<number | null>(null);
+  const [pressure, setPressure] = useState<number | null>(null);
+  const [windSpeed, setWindSpeed] = useState<number | null>(null);
+  const [windDirection, setWindDirection] = useState<number | null>(null);
+  const [visibility, setVisibility] = useState<number | null>(null);
+  const [sunrise, setSunrise] = useState<number | null>(null);
+  const [sunset, setSunset] = useState<number | null>(null);
 
   // Fetch weather data for a given URL
   const fetchWeatherData = async (url: string) => {
@@ -29,15 +36,22 @@ const Home: React.FC = () => {
       }
       const data = await response.json();
       setLocation(data.name);
-      setSearchString('');
       setTemperature(data.main.temp);
+      setFeelsLike(data.main.feels_like);
       setHumidity(data.main.humidity);
+      setPressure(data.main.pressure);
+      setWindSpeed(data.wind.speed);
+      setWindDirection(data.wind.deg);
+      setVisibility(data.visibility);
+      setSunrise(data.sys.sunrise);
+      setSunset(data.sys.sunset);
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       }
     } finally {
       setLoading(false);
+      setSearchString('');
     }
   };
 
@@ -103,7 +117,14 @@ const Home: React.FC = () => {
         <div>
           <p>Location: {location}</p>
           <p>Temperature: {temperature}°C</p>
+          <p>Feels Like: {feelsLike}°C</p>
           <p>Humidity: {humidity}%</p>
+          <p>Pressure: {pressure} hPa</p>
+          <p>Wind Speed: {windSpeed} m/s</p>
+          <p>Wind Direction: {windDirection}°</p>
+          <p>Visibility: {visibility} m</p>
+          <p>Sunrise: {new Date(sunrise * 1000).toLocaleTimeString()}</p>
+          <p>Sunset: {new Date(sunset * 1000).toLocaleTimeString()}</p>
         </div>
       )}
     </div>

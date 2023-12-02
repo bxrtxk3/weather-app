@@ -21,6 +21,7 @@ const Home: React.FC = () => {
   const [sunrise, setSunrise] = useState<number | null>(null);
   const [sunset, setSunset] = useState<number | null>(null);
   const [timeZone, setTimeZone] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState<string | null>(null);
   const [iconCode, setIconCode] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
 
@@ -67,6 +68,7 @@ const Home: React.FC = () => {
       setSunrise(data.sys.sunrise);
       setSunset(data.sys.sunset);
       setTimeZone(data.timezone);
+      setCurrentTime(new Date(data.dt * 1000).toLocaleTimeString());
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -137,6 +139,7 @@ const Home: React.FC = () => {
         <p>Error: {error}</p>
       ) : (
         <div>
+          <p>Current Time: {currentTime}</p>
           <p>Location: {location}{country && `, ${country}`}</p>
           {iconCode && <img src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`} alt="Weather icon" />}
           <p>Description: {description}</p>

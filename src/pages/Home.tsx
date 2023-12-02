@@ -29,6 +29,7 @@ const Home: React.FC = () => {
       }
       const data = await response.json();
       setLocation(data.name);
+      setSearchString('');
       setTemperature(data.main.temp);
       setHumidity(data.main.humidity);
     } catch (error) {
@@ -89,6 +90,7 @@ const Home: React.FC = () => {
         <input
           type="text"
           value={searchString}
+          placeholder="Enter a location"
           onChange={(e) => setSearchString(e.target.value)}
         />
         <button type="submit">Fetch Weather</button>

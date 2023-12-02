@@ -10,6 +10,7 @@ const Home: React.FC = () => {
   const [error, setError] = useState<null | string>(null);
   const [searchString, setSearchString] = useState("London");
   const [location, setLocation] = useState('');
+  const [country, setCountry] = useState<string | null>(null);
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
   const [feelsLike, setFeelsLike] = useState<number | null>(null);
@@ -19,6 +20,18 @@ const Home: React.FC = () => {
   const [visibility, setVisibility] = useState<number | null>(null);
   const [sunrise, setSunrise] = useState<number | null>(null);
   const [sunset, setSunset] = useState<number | null>(null);
+  const [timeZone, setTimeZone] = useState<number | null>(null);
+  const [iconCode, setIconCode] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+
+
+  // Convert wind direction in degrees to cardinal direction
+  const getWindDirection = (deg: number) => {
+    const directions = ['North', 'North East', 'East', 'South East', 'South', 'South West', 'West', 'North West'];
+    const value = Math.floor((deg / 45) + 0.5);
+    return directions[value % 8];
+  };
+
 
   // Fetch weather data for a given URL
   const fetchWeatherData = async (url: string) => {
@@ -35,7 +48,15 @@ const Home: React.FC = () => {
         }
       }
       const data = await response.json();
+
+      // Set the icon code
+      if (data.weather && data.weather.length > 0) {
+        setIconCode(data.weather[0].icon);
+      }
+      console.log(data);
       setLocation(data.name);
+      setCountry(data.sys.country);
+      setDescription(data.weather[0].description);
       setTemperature(data.main.temp);
       setFeelsLike(data.main.feels_like);
       setHumidity(data.main.humidity);
@@ -45,6 +66,7 @@ const Home: React.FC = () => {
       setVisibility(data.visibility);
       setSunrise(data.sys.sunrise);
       setSunset(data.sys.sunset);
+      setTimeZone(data.timezone);
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -115,16 +137,18 @@ const Home: React.FC = () => {
         <p>Error: {error}</p>
       ) : (
         <div>
-          <p>Location: {location}</p>
+          <p>Location: {location}{country && `, ${country}`}</p>
+          {iconCode && <img src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`} alt="Weather icon" />}
+          <p>Description: {description}</p>
           <p>Temperature: {temperature}°C</p>
           <p>Feels Like: {feelsLike}°C</p>
           <p>Humidity: {humidity}%</p>
           <p>Pressure: {pressure} hPa</p>
           <p>Wind Speed: {windSpeed} m/s</p>
-          <p>Wind Direction: {windDirection}°</p>
+          <p>Wind Direction: {windDirection !== null ? getWindDirection(windDirection) : 'N/A'}</p>
           <p>Visibility: {visibility} m</p>
-          <p>Sunrise: {new Date(sunrise * 1000).toLocaleTimeString()}</p>
-          <p>Sunset: {new Date(sunset * 1000).toLocaleTimeString()}</p>
+          <p>Sunrise: {sunrise && timeZone ? new Date((sunrise + timeZone) * 1000).toLocaleTimeString() : 'N/A'}</p>
+          <p>Sunset: {sunset && timeZone ? new Date((sunset + timeZone) * 1000).toLocaleTimeString() : 'N/A'}</p>
         </div>
       )}
     </div>
